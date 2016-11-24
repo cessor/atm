@@ -71,7 +71,7 @@ class Menu(object):
         self._pause()
 
     def invalid_customer(self):
-        print("User Does Not Exist")
+        print("User Does Not Exist. ")
 
     def login(self, validate_pin):
         return pin(
@@ -81,7 +81,7 @@ class Menu(object):
         )
 
     def login_failed(self):
-        print("You failed to authenticate. Aborting.")
+        print("You failed to authenticate. ")
 
     def welcome(self, name):
         print("Logged in as %s" % name)

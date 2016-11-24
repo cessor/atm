@@ -1,8 +1,10 @@
-from complaint import Exit, LoginFailed, InvalidCustomer
+from complaint import Exit, LoginFailed, UnknownCustomer
 from menu import Menu
 from model import Customers
 import system
 
+KEEP_RUNNING = True
+STOP = False
 
 class ATM(object):
     '''Controls a users's interactions with the ATM.'''
@@ -10,10 +12,10 @@ class ATM(object):
     def __init__(self, menu, customers):
         self.customers = customers
         self.menu = menu
-        self.customer = None
+        self.customer = None #NewCustomer()
 
     def start(self):
-        running = True
+        running = KEEP_RUNNING
         while running:
             running = self._session()
         self.menu.goodbye()
@@ -25,33 +27,35 @@ class ATM(object):
             self._init_customer()
             self._handle_user_action()
 
-        except InvalidCustomer:
+        except UnknownCustomer:
             self.menu.invalid_customer()
-            return False
+            return STOP
 
         except LoginFailed:
             self.menu.login_failed()
-            return False
+            return STOP
 
         except Exit:
-            return False
+            return STOP
 
         except KeyboardInterrupt:
-            return False
+            return STOP
 
-        #except:
-        #    print("An unknown error occured. Aborting")
-        #    return False
+        except:
+            print("An unknown error occured. Aborting")
+            return STOP
 
         finally:
             self.customers.save(self.customer)
 
-        return True # Keep running
+        return KEEP_RUNNING # Keep running
 
     def _init_customer(self):
         if not self.customer:
-            number = self.menu.customer_number()
-            self.customer = self.customers[number]
+            self.customer = self.customers.find(
+                self.menu.customer_number,
+                self._abort_unknown_customer
+            )
             self.menu.welcome(self.customer.name)
 
     def _handle_user_action(self):
@@ -67,6 +71,9 @@ class ATM(object):
         )
 
         self._act(action)
+
+    def _abort_unknown_customer(self):
+        raise UnknownCustomer()
 
     def _abort_login(self):
         raise LoginFailed()

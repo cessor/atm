@@ -1,19 +1,17 @@
 '''This module contains all model classes, that define the domain. '''
 from decimal import Decimal
 from history import History, remember
-from complaint import InvalidCustomer
-
 
 class Customers(object):
-    '''Retrieves ans saves customers'''
-    def exists(self, number):
-        return number == "Johannes"
+    '''Retrieves and saves customers'''
+    def __init__(self):
+        self.customers = {
+            'Johannes': UnauthenticatedCustomer(
+                "Johannes" ,"Johannes", "1234", Balance(0.0), History())
+        }
 
-    def __getitem__(self, number):
-        if not self.exists(number):
-            raise InvalidCustomer()
-        return UnauthenticatedCustomer(
-            number, number, "1234", Balance(0.0), History())
+    def find(self, number, failure):
+       return self.customers.get(number()) or failure()
 
     def save(self, customer):
         pass
@@ -29,11 +27,11 @@ class Customer(object):
 
     def deposit(self, amount):
         self.history.remember_transaction(amount, 'deposit')
-        self.balance.credit(amount)
+        self.balance = self.balance.credit(amount)
 
     def withdraw(self, amount):
         self.history.remember_transaction(amount, 'withdraw')
-        self.balance.debit(amount)
+        self.balance = self.balance.debit(amount)
 
     def authenticate(self, login_function, invalid_pin):
         # Authenticated customers don't need to login.
@@ -63,11 +61,11 @@ class Balance(object):
 
     def credit(self, amount):
         # To credit: Gutschreiben
-        self.value += amount
+        return Balance(self.value + amount)
 
     def debit(self, amount):
         # To debit: Belasten
-        self.value -= amount
+        return Balance(self.value - amount)
 
     def _avoid_negative_value(self):
         return self.value * -1 if self.value < 0 else self.value
