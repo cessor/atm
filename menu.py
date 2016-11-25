@@ -1,4 +1,5 @@
 from interactions import prompt, secret, select, pin, amount
+from model import Report
 import os
 
 
@@ -18,21 +19,14 @@ class Menu(object):
         print(text)
         print('*' * len(text))
 
-    def _line(self):
-        print('-' * 80)
-
     def _pause(self):
         self.system.pause()
 
     def balance(self, balance):
-        self._line()
         self._header('Balance')
         print('Your account Balance is: ')
         print()
         print(balance)
-        self._line()
-        print("Note: (C) Credit / (D) Debit")
-        self._line()
         self._pause()
 
     def branding(self):
@@ -58,16 +52,11 @@ class Menu(object):
     def goodbye(self):
         print('Thank you for using %s services' % self.TITLE)
 
-    def report(self, print_history, print_footer):
+    def report(self, history):
         self._header('Report')
         print("Listing past transactions")
         print()
-        print_history()
-        self._line()
-        print_footer()
-        self._line()
-        print("Note: (D) Deposit / (W) Withdraw")
-        self._line()
+        print(Report(history))
         self._pause()
 
     def invalid_customer(self):

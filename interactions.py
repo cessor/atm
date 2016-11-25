@@ -7,44 +7,40 @@ _PROMPT_INDICATOR = '> '
 _FOUR_DIGITS = re.compile(r'^\d{4}$')
 
 
-def weasel(test, gen):
+def _ask_until_valid(validate, ask):
+    '''Prompts for input, until a validatingcondition is met'''
     text = ''
-    while test(text):
-        text = gen()
+    while validate(text):
+        text = ask()
     return text
 
 
-def _ask_for_input(message):
+def _input(message):
     print(message)
-    return input(_PROMPT_INDICATOR)
+    return input(_PROMPT_INDICATOR).strip()
 
 
-def _prevent_empty_response(response_function):
-    '''Asks for input as long as the input is empty'''
-    return weasel(
-        lambda text: not text,
-        lambda: response_function().strip()
+def amount(message):
+    '''Prompts the user to input a positive amount decimal number'''
+    return _ask_until_valid(
+        ask= lambda: DecimalFrom(_input(message)).value(),
+        validate= lambda value: not isinstance(value, Decimal),
     )
 
 
 def prompt(message):
-    '''Asks the user for input'''
-    return _prevent_empty_response(
-        lambda: _ask_for_input(message)
+    '''Prompts the user to input some text'''
+    return _ask_until_valid(
+        ask= lambda: _input(message),
+        validate= lambda text: not text
     )
 
 
-def secret(message):
-    '''Asks the user for input and covers their entries'''
-    print(message)
-    return getpass.getpass(_PROMPT_INDICATOR)
-
-
 def select(message, choices):
-    '''Asks the user for input within an allowed domain of choices'''
-    return weasel(
-        lambda text: text not in list(choices),
-        lambda: prompt(message).lower()
+    '''Prompts the user to select from a domain of choices'''
+    return _ask_until_valid(
+        ask= lambda: _input(message).lower(),
+        validate= lambda text: text not in list(choices),
     )
 
 
@@ -58,6 +54,12 @@ def pin(message, try_again_message, validate):
             return True
         print(try_again_message)
     return False
+
+
+def secret(message):
+    '''Asks the user for input and covers their entries'''
+    print(message)
+    return getpass.getpass(_PROMPT_INDICATOR)
 
 
 class DecimalFrom(object):
@@ -80,11 +82,3 @@ class DecimalFrom(object):
             return Decimal(self.text)
         except:
             return Decimal(0)
-
-
-def amount(message):
-    '''Prompts user to input a positive amount decimal number'''
-    return weasel(
-        lambda value: not isinstance(value, Decimal),
-        lambda: DecimalFrom(prompt(message)).value()
-    )

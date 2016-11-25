@@ -1,4 +1,3 @@
-from complaint import Exit, LoginFailed, UnknownCustomer
 from menu import Menu
 from model import Customers
 import system
@@ -6,9 +5,25 @@ import system
 KEEP_RUNNING = True
 STOP = False
 
+
+class Complaint(Exception):
+    '''Usually I devide exceptions into Apologies and Complaints. A complaint is a message about an invalid system state that should halt your application. Apologies are states that are best avoided but that you can recover from.'''
+    pass
+
+class Exit(Exception):
+    pass
+
+
+class UnknownCustomer(Complaint):
+    pass
+
+
+class LoginFailed(Complaint):
+    pass
+
+
 class ATM(object):
     '''Controls a users's interactions with the ATM.'''
-
     def __init__(self, menu, customers):
         self.customers = customers
         self.menu = menu
@@ -41,9 +56,9 @@ class ATM(object):
         except KeyboardInterrupt:
             return STOP
 
-        except:
-            print("An unknown error occured. Aborting")
-            return STOP
+        # except:
+        #     print("An unknown error occured. Aborting")
+        #     return STOP
 
         finally:
             self.customers.save(self.customer)
@@ -100,9 +115,7 @@ class ATM(object):
         self.customer.withdraw(amount)
 
     def _report(self):
-        body = self.customer.history.body
-        footer = self.customer.history.footer
-        self.menu.report(body, footer)
+        self.menu.report(self.customer.history)
 
 
 def main():

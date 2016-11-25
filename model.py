@@ -1,6 +1,5 @@
-'''This module contains all model classes, that define the domain. '''
 from decimal import Decimal
-from history import History, remember
+import datetime
 
 class Customers(object):
     '''Retrieves and saves customers'''
@@ -26,11 +25,11 @@ class Customer(object):
         self.history = history
 
     def deposit(self, amount):
-        self.history.remember_transaction(amount, 'deposit')
+        self.history.remember(amount, 'deposit')
         self.balance = self.balance.credit(amount)
 
     def withdraw(self, amount):
-        self.history.remember_transaction(amount, 'withdraw')
+        self.history.remember(amount, 'withdraw')
         self.balance = self.balance.debit(amount)
 
     def authenticate(self, login_function, invalid_pin):
@@ -53,26 +52,100 @@ class UnauthenticatedCustomer(Customer):
 
 
 class Balance(object):
-    CREDIT = 'C'
-    DEBIT = 'D'
-
+    '''The money owned by a customer, without a currency'''
     def __init__(self, value):
         self.value = Decimal(value)
 
     def credit(self, amount):
         # To credit: Gutschreiben
-        return Balance(self.value + amount)
+        return Balance(self.value + amount).absolute()
 
     def debit(self, amount):
         # To debit: Belasten
-        return Balance(self.value - amount)
+        return Balance(self.value - amount).absolute()
 
-    def _avoid_negative_value(self):
-        return self.value * -1 if self.value < 0 else self.value
-
-    def _type(self):
-        return self.DEBIT if self.value < 0 else self.CREDIT
+    def absolute(self):
+        if self.value < 0:
+            return Debit(abs(self.value))
+        return Credit(abs(self.value))
 
     def __str__(self):
-        value = self._avoid_negative_value()
-        return "%.4f %s" % (value, self._type())
+        return "%.4f %s" % (self.value, self.__class__.__name__)
+
+
+class Credit(Balance):
+    pass
+
+
+class Debit(Balance):
+    pass
+
+
+class History(object):
+    '''A history of events in the system'''
+    def __init__(self, records = []):
+        self.records = records
+
+    def remember(self, amount, label):
+        self.records.append(Record(amount, label))
+
+
+class Line(object):
+    '''A horizontal line on the console'''
+    def __str__(self):
+        return ('-' * 80)
+
+
+class Report(object):
+    '''Displays a table of events'''
+    def __init__(self, history):
+        self.records = history.records
+
+    def __str__(self):
+        if not self.records:
+            return str(Rows(
+                'No records available.',
+                Line()
+            ))
+
+        n_records = '%s Records' % len(self.records)
+
+        rows = Rows(
+            Rows(*self.records),
+            Line(),
+            n_records,
+            Line()
+        )
+
+        return str(rows)
+
+
+class Record(object):
+    def __init__(self, amount, transaction_type):
+        self.created = Timestamp()
+        self.amount = amount
+        self.type = transaction_type
+
+    def __str__(self):
+        return '%s %.4f \t%s' % (
+            self.created, self.amount, self.type)
+
+
+class Rows(object):
+    '''A collection of rows to be displayed in a table'''
+    def __init__(self, *args):
+        self.args = args
+
+    def __str__(self):
+        return '\n'.join([str(arg) for arg in self.args])
+
+
+class Timestamp(object):
+    '''Encapsulated Timestamps in an object oriented fashion'''
+    def __init__(self):
+        self.date = datetime.datetime.now()
+
+    def __str__(self):
+        format_ = '%Y-%m-%d, %H:%M:%S'
+        # String Format Time
+        return self.date.strftime(format_)
