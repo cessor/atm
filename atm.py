@@ -1,25 +1,9 @@
-from menu import Menu
-from model import Customers
+import menu
+from model import Customers, Report
 import system
 
 KEEP_RUNNING = True
 STOP = False
-
-
-class Complaint(Exception):
-    '''Usually I devide exceptions into Apologies and Complaints. A complaint is a message about an invalid system state that should halt your application. Apologies are states that are best avoided but that you can recover from.'''
-    pass
-
-class Exit(Exception):
-    pass
-
-
-class UnknownCustomer(Complaint):
-    pass
-
-
-class LoginFailed(Complaint):
-    pass
 
 
 class ATM(object):
@@ -27,7 +11,9 @@ class ATM(object):
     def __init__(self, menu, customers):
         self.customers = customers
         self.menu = menu
-        self.customer = None #NewCustomer()
+
+        # NewCustomer()
+        self.customer = None
 
     def start(self):
         running = KEEP_RUNNING
@@ -63,7 +49,8 @@ class ATM(object):
         finally:
             self.customers.save(self.customer)
 
-        return KEEP_RUNNING # Keep running
+        # Keep running
+        return KEEP_RUNNING
 
     def _init_customer(self):
         if not self.customer:
@@ -115,12 +102,24 @@ class ATM(object):
         self.customer.withdraw(amount)
 
     def _report(self):
-        self.menu.report(self.customer.history)
+        self.menu.report(Report(self.customer.history))
+
+
+class UnknownCustomer(Exception):
+    pass
+
+
+class LoginFailed(Exception):
+    pass
+
+
+class Exit(Exception):
+    pass
 
 
 def main():
     ATM(
-        Menu(system.current()),
+        menu,
         Customers()
     ).start()
 

@@ -1,4 +1,5 @@
 '''Provides functions that receive and validate user input'''
+
 from decimal import Decimal
 import getpass
 import re
@@ -20,10 +21,20 @@ def _input(message):
     return input(_PROMPT_INDICATOR).strip()
 
 
+def _parse_decimal_from(text):
+    '''Parses a positive decimal number from input text.
+    Both . and , are recognized as comma values.'''
+    try:
+        text = text.replace(',', '.').replace('-', '')
+        return Decimal(text)
+    except:
+        return Decimal(0)
+
+
 def amount(message):
     '''Prompts the user to input a positive amount decimal number'''
     return _ask_until_valid(
-        ask= lambda: DecimalFrom(_input(message)).value(),
+        ask= lambda: _parse_decimal_from(_input(message)),
         validate= lambda value: not isinstance(value, Decimal),
     )
 
@@ -60,25 +71,3 @@ def secret(message):
     '''Asks the user for input and covers their entries'''
     print(message)
     return getpass.getpass(_PROMPT_INDICATOR)
-
-
-class DecimalFrom(object):
-    '''Parses a positive decimal number from input text'''
-    def __init__(self, text):
-        self.text = text
-
-    def _decimal_separator(self):
-        '''Both . and , are recognized as comma values.'''
-        self.text = self.text.replace(',', '.')
-
-    def _enforce_positive(self):
-        # Accept positive decimal numbers by removing sign
-        self.text = self.text.replace('-', '')
-
-    def value(self):
-        try:
-            self._enforce_positive()
-            self._decimal_separator()
-            return Decimal(self.text)
-        except:
-            return Decimal(0)

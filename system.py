@@ -3,6 +3,7 @@ windows is different from a console on a Mac or Linux.'''
 
 import os
 
+
 class LinuxOrMac(object):
     def pause(self):
         '''Waits for user input'''
@@ -12,6 +13,7 @@ class LinuxOrMac(object):
         '''Clears the console window.'''
         os.system('clear')
 
+
 class Windows(object):
     def pause(self):
         '''Waits for user input'''
@@ -20,6 +22,7 @@ class Windows(object):
     def clear(self):
         '''Clears the console window.'''
         os.system('cls')
+
 
 def current():
     '''Returns the current operating system'''

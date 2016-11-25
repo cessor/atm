@@ -1,80 +1,98 @@
-from interactions import prompt, secret, select, pin, amount
-from model import Report
+'''Provides functions that display the state of the application.'''
+
 import os
+import system
+
+from interactions import *
+
+_system = system.current()
+
+TITLE = 'Heidelberg Student Bank'
 
 
-class Menu(object):
-    # The methods in this class are sorted alphabetically
-    TITLE = 'Heidelberg Student Bank'
+def _clear():
+    _system.clear()
 
-    def __init__(self, system):
-        self.system = system
 
-    def _clear(self):
-        self.system.clear()
+def _decoration(text):
+    return '*' * len(text)
 
-    def _header(self, text):
-        self._clear()
-        print('*' * len(text))
-        print(text)
-        print('*' * len(text))
 
-    def _pause(self):
-        self.system.pause()
+def _header(text):
+    _clear()
+    print(_decoration(text))
+    print(text)
+    print(_decoration(text))
 
-    def balance(self, balance):
-        self._header('Balance')
-        print('Your account Balance is: ')
-        print()
-        print(balance)
-        self._pause()
 
-    def branding(self):
-        self._clear()
-        self._header(self.TITLE)
+def _pause():
+    _system.pause()
 
-    def choose_action(self):
-        menu_items = """
+
+def branding():
+    _clear()
+    _header(TITLE)
+
+
+def balance(balance):
+    _header('Balance')
+    print('Your account Balance is: ')
+    print()
+    print(balance)
+    _pause()
+
+
+def choose_action():
+    menu_items = '''
 (D) Deposit   (B) Balance
 (W) Withdraw  (R) Report
 
 (Q) Quit
-"""
-        return select(menu_items, choices="dbwrq")
+'''
+    return select(menu_items, choices='dbwrq')
 
-    def customer_number(self):
-        return prompt("Customer Number: ")
 
-    def deposit(self):
-        self._header("DEPOSIT")
-        return amount("Amount to deposit: ")
+def customer_number():
+    return prompt('Customer Number: ')
 
-    def goodbye(self):
-        print('Thank you for using %s services' % self.TITLE)
 
-    def report(self, history):
-        self._header('Report')
-        print("Listing past transactions")
-        print()
-        print(Report(history))
-        self._pause()
+def deposit():
+    _header('Deposit')
+    return amount('Amount to deposit: ')
 
-    def invalid_customer(self):
-        print("User Does Not Exist. ")
 
-    def login(self, validate_pin):
-        return pin(
-            "PIN (Entry will be hidden): ",
-            "Invalid Pin. Please try again.",
-            validate_pin
-        )
+def goodbye():
+    print('Thank you for using %s services' % TITLE)
 
-    def login_failed(self):
-        print("You failed to authenticate. ")
 
-    def welcome(self, name):
-        print("Logged in as %s" % name)
+def report(table):
+    _header('Report')
+    print('Listing past transactions')
+    print()
+    print(table)
+    _pause()
 
-    def withdraw(self):
-        self._header("WITHDRAW")
-        return amount("Amount to withdraw: ")
+
+def invalid_customer():
+    print('User Does Not Exist. ')
+
+
+def login(validate_pin):
+    return pin(
+        'PIN (Entry will be hidden): ',
+        'Invalid Pin. Please try again.',
+        validate_pin
+    )
+
+
+def login_failed():
+    print('You failed to authenticate. ')
+
+
+def welcome(name):
+    print('Logged in as %s' % name)
+
+
+def withdraw():
+    _header('Withdraw')
+    return amount('Amount to withdraw: ')

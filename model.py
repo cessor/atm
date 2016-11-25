@@ -1,16 +1,17 @@
 from decimal import Decimal
 import datetime
 
+
 class Customers(object):
     '''Retrieves and saves customers'''
     def __init__(self):
         self.customers = {
             'Johannes': UnauthenticatedCustomer(
-                "Johannes" ,"Johannes", "1234", Balance(0.0), History())
+                "Johannes", "Johannes", "1234", Balance(0.0), History())
         }
 
     def find(self, number, failure):
-       return self.customers.get(number()) or failure()
+        return self.customers.get(number()) or failure()
 
     def save(self, customer):
         pass
@@ -47,7 +48,8 @@ class UnauthenticatedCustomer(Customer):
 
     def authenticate(self, login, fail):
         if login(self._validate_pin):
-            return Customer(self.number, self.name, self.pin, self.balance, self.history)
+            return Customer(
+                self.number, self.name, self.pin, self.balance, self.history)
         fail()
 
 
@@ -70,20 +72,26 @@ class Balance(object):
         return Credit(abs(self.value))
 
     def __str__(self):
-        return "%.4f %s" % (self.value, self.__class__.__name__)
+        balance = "%.4f %s" % (self.value, self.__class__.__name__)
+        return str(Rows(
+                balance,
+                Line()
+        ))
 
 
 class Credit(Balance):
+    '''Buchführung: Haben'''
     pass
 
 
 class Debit(Balance):
+    '''Buchführung: Soll'''
     pass
 
 
 class History(object):
     '''A history of events in the system'''
-    def __init__(self, records = []):
+    def __init__(self, records=[]):
         self.records = records
 
     def remember(self, amount, label):
