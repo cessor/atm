@@ -2,6 +2,7 @@ import menu
 from model import Accounts, History, Table, File
 import system
 
+
 KEEP_RUNNING = True
 STOP = False
 
@@ -60,9 +61,9 @@ class ATM(object):
             self.menu.welcome(self.account.name)
 
     def _handle_user_action(self):
-        action = self.menu.choose_action().lower()
+        choice = self.menu.choose_action().lower()
 
-        if action == 'q':
+        if choice == 'q':
             raise Exit()
 
         # Any action other than exit requires a login first
@@ -71,7 +72,7 @@ class ATM(object):
             self._abort_login
         )
 
-        self._act(action)
+        self._act(choice)
 
     def _abort_unknown_account(self):
         raise UnknownCustomer()
@@ -79,15 +80,15 @@ class ATM(object):
     def _abort_login(self):
         raise LoginFailed()
 
-    def _act(self, action):
-        if action == 'b':
-            self._balance()
-        if action == 'd':
-            self._deposit()
-        if action == 'r':
-            self._report()
-        if action == 'w':
-            self._withdraw()
+    def _act(self, choice):
+        actions = {
+            'b': self._balance,
+            'd': self._deposit,
+            'r': self._report,
+            'w': self._withdraw,
+        }
+        action = actions.get(choice, lambda: None)
+        action()
 
     def _balance(self):
         self.menu.balance(
