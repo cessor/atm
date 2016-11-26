@@ -1,5 +1,4 @@
 '''Provides functions that display the state of the application.'''
-
 import os
 import system
 
@@ -52,8 +51,8 @@ def choose_action():
     return select(menu_items, choices='dbwrq')
 
 
-def customer_number():
-    return prompt('Customer Number: ')
+def account_number():
+    return prompt('Account Number: ')
 
 
 def deposit():
@@ -65,16 +64,16 @@ def goodbye():
     print('Thank you for using %s services' % TITLE)
 
 
-def report(table):
+def report(history):
     _header('Report')
     print('Listing past transactions')
     print()
-    print(table)
+    print(history)
     _pause()
 
 
-def invalid_customer():
-    print('User Does Not Exist. ')
+def invalid_account():
+    print('Account Does Not Exist.')
 
 
 def login(validate_pin):

@@ -1,5 +1,5 @@
 import menu
-from model import Customers, Report
+from model import Accounts, History, Table, File
 import system
 
 KEEP_RUNNING = True
@@ -8,12 +8,12 @@ STOP = False
 
 class ATM(object):
     '''Controls a users's interactions with the ATM.'''
-    def __init__(self, menu, customers):
-        self.customers = customers
+    def __init__(self, menu, accounts, history):
+        self.accounts = accounts
+        self.history = history
         self.menu = menu
 
-        # NewCustomer()
-        self.customer = None
+        self.account = None
 
     def start(self):
         running = KEEP_RUNNING
@@ -25,11 +25,11 @@ class ATM(object):
         self.menu.branding()
 
         try:
-            self._init_customer()
+            self._init_account()
             self._handle_user_action()
 
         except UnknownCustomer:
-            self.menu.invalid_customer()
+            self.menu.invalid_account()
             return STOP
 
         except LoginFailed:
@@ -42,23 +42,22 @@ class ATM(object):
         except KeyboardInterrupt:
             return STOP
 
-        # except:
-        #     print("An unknown error occured. Aborting")
-        #     return STOP
+        except:
+            print("An unknown error occured. Aborting")
+            return STOP
 
         finally:
-            self.customers.save(self.customer)
+            self.history.save()
 
-        # Keep running
         return KEEP_RUNNING
 
-    def _init_customer(self):
-        if not self.customer:
-            self.customer = self.customers.find(
-                self.menu.customer_number,
-                self._abort_unknown_customer
+    def _init_account(self):
+        if not self.account:
+            self.account = self.accounts.find(
+                self.menu.account_number,
+                self._abort_unknown_account
             )
-            self.menu.welcome(self.customer.name)
+            self.menu.welcome(self.account.name)
 
     def _handle_user_action(self):
         action = self.menu.choose_action().lower()
@@ -67,14 +66,14 @@ class ATM(object):
             raise Exit()
 
         # Any action other than exit requires a login first
-        self.customer = self.customer.authenticate(
+        self.account = self.account.authenticate(
             self.menu.login,
             self._abort_login
         )
 
         self._act(action)
 
-    def _abort_unknown_customer(self):
+    def _abort_unknown_account(self):
         raise UnknownCustomer()
 
     def _abort_login(self):
@@ -91,18 +90,22 @@ class ATM(object):
             self._withdraw()
 
     def _balance(self):
-        self.menu.balance(self.customer.balance)
+        self.menu.balance(
+            self.history.balance_for(self.account.number)
+        )
 
     def _deposit(self):
         amount = self.menu.deposit()
-        self.customer.deposit(amount)
+        self.history.remember_deposit(self.account.number, amount)
 
     def _withdraw(self):
         amount = self.menu.withdraw()
-        self.customer.withdraw(amount)
+        self.history.remember_withdraw(self.account.number, amount)
 
     def _report(self):
-        self.menu.report(Report(self.customer.history))
+        self.menu.report(
+            self.history.report_for(self.account.number)
+        )
 
 
 class UnknownCustomer(Exception):
@@ -120,7 +123,16 @@ class Exit(Exception):
 def main():
     ATM(
         menu,
-        Customers()
+        Accounts(
+            Table(
+                File('accounts.txt')
+            )
+        ),
+        History(
+            Table(
+                File('transactions.txt')
+            )
+        )
     ).start()
 
 
